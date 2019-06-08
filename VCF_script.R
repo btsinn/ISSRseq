@@ -7,13 +7,14 @@ library(ggplot2)
 library(reshape2)
 library(LEA)
 library(netview)
+library(networkD3)
 
 ##
 ##Data Handling
 ##
 
 #set working directory
-setwd(dir = "C:/Users/Brandon/Google Drive/WVU/RRISSR/ISSRseq/")
+setwd(dir = "C:/Users/Brandon/Google Drive/WVU/RRISSR/ISSRseq/C_bentleyi/")
 
 #import GATK filtered VCF file
 filtered_vcf <- read.vcfR("C_bentleyi_filtered_SNPs.vcf")
@@ -31,6 +32,11 @@ pop_data <- read.table("C_bentleyi_populations.txt", sep = "\t", header = FALSE)
 gl_vcf_subset <- vcfR2genlight(subset_filtered_vcf)
 
 gl_vcf_full <- vcfR2genlight(filtered_vcf)
+
+#try to extract a single random SNP from each locus
+#locus_split <- seploc(gl_vcf_full, block.size = 1)
+#set.seed(123)
+#subset.1 <- sample(size = 100, x = c(1:nrow(locus_split)), replace = FALSE)
 
 #set ploidy
 ploidy(gl_vcf_subset) <- 2
@@ -52,7 +58,7 @@ write.geno(as.matrix(gl_vcf_full), "C_bentleyi_full_genofile.geno")
 
 ##create UPGMA tree
 
-upgma_tree <- aboot(gl_vcf_full, tree = "upgma", distance = bitwise.dist, missing = "loci", mcutoff = 0.1, sample = 10, showtree = TRUE, cutoff = 49, quiet = T)
+upgma_tree <- aboot(gl_vcf_full, tree = "upgma", distance = bitwise.dist, missing = "loci", mcutoff = 0.1, sample = 10, showtree = FALSE, cutoff = 49, quiet = T)
 
 plot.phylo(upgma_tree, cex = 0.8, font = 2, adj = 0, tip.color =  cols_full[pop(gl_vcf_full)])
 
@@ -117,7 +123,7 @@ dapc_plot
 #run for a range of K values -- alpha is a non-negative regularization parameter, 10 is a good choice
 #tolerance is the difference between two runs to measure convergence
 obj.snmf = snmf("C_bentleyi_full_genofile.geno", K = 1:10, ploidy = 2, entropy = T,
-                percentage = 0.1, alpha = 100, tolerance = 0.0000000001, project = "new")
+                percentage = 0.25, alpha = 100, tolerance = 0.0000000001, project = "new")
 
 #plot the cross entropy 
 plot(obj.snmf, col = "blue4", cex = 1.4, pch = 19)
@@ -131,7 +137,7 @@ barplot(t(qmatrix), col = c("orange","violet","lightgreen", "blue", "red", "blac
 ######conduct NETVIEW analysis
 
 #create distance matrix
-dist_matrix <- bitwise.dist(gl_vcf_full, mat = TRUE, missing_match = TRUE)
+dist_matrix <- bitwise.dist(gl_vcf_full, mat = TRUE, missing_match = FALSE)
 
 #create metadata file
 net_metadata <- as.data.frame(cbind(pop_data, cols_full[pop(gl_vcf_full)]))
@@ -142,12 +148,17 @@ names(net_metadata)[3] <- "Colour"
 #conduct analysis
 netview_options <- netviewOptions(mknnWeights=TRUE, nodeGroup="Population", 
                                   nodeID="ID", nodeColour="Colour", communityAlgorithms = "Infomap")
-netview_output <- netview(distMatrix = dist_matrix, metaData = net_metadata, k=1:20, cluster = TRUE, options = netview_options)
+
+netview_output <- netview(distMatrix = dist_matrix, metaData = net_metadata, 
+                          k=1:20, cluster = TRUE, options = netview_options, mst = FALSE)
 
 #plot netview results
 netview_K_plot <- plotSelection(netview_output, options = netview_options)
 
 netview_K_plot
 
-netview_selected_K <- netview_output$k10
-plot(netview_selected_K, vertex.size=10, vertex.label=net_metadata$ID, layout=layout.fruchterman.reingold(netview_selected_K))
+netview_selected_K <- netview_output$k12
+plot(netview_selected_K, vertex.size=10, vertex.label=net_metadata$ID)
+
+######conduct AMOVA
+

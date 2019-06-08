@@ -4,7 +4,7 @@ echo "
 
 ISSRseq -- AnalyzeBAMs
                        
-development version 0.1
+development version 0.2
 use help for usage 
     
 "
@@ -45,7 +45,6 @@ done
 
 mkdir $PREFIX/gvcfs
 mkdir $PREFIX/matrices
-mkdir $PREFIX/faststructure
 
 REF_DB=$PREFIX/reference/reference_assembly.fa
 SAMPLE_LIST=$PREFIX/samples.txt
@@ -68,9 +67,12 @@ done < $SAMPLE_LIST
 
 #run GATK second step -- CombineGVCFs
 
-GVCFS=('-V' `ls $PREFIX/gvcfs/*.g.vcf` '\' ""\n"")
+options=()
+for file in $PREFIX/gvcfs/*.g.vcf; do    
+    options+=(-V "${file}")    # If you want the full path, leave off ##*/
+done
 
-gatk --java-options "-Xmx100g" CombineGVCFs -L $PREFIX/reference/list.intervals -R $REF_DB ${GVCFS[*]} -O $PREFIX/matrices/combined_gvcfs.g.vcf >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
+gatk --java-options "-Xmx100g" CombineGVCFs -L $PREFIX/reference/list.intervals -R $REF_DB "${options[@]}" -O $PREFIX/matrices/combined_gvcfs.g.vcf >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
 
 #run GATK third step -- GenotypeGVCFs
 
@@ -78,7 +80,7 @@ gatk --java-options "-Xmx100g" GenotypeGVCFs -L $PREFIX/reference/list.intervals
 
 #select variants from VCF that are characterized by certain attributes
 
-gatk --java-options "-Xmx100g" SelectVariants -R $REF_DB -V $PREFIX/matrices/raw_SNPs.vcf -O $PREFIX/matrices/filtered_SNPs.vcf --select-type-to-exclude INDEL -select-type-to-include SNP --restrict-alleles-to BIALLELIC --selectExpressions "AF > 0.01 && AF < 0.99 && QD > 2.0 && ExcessHet < 20.0 && MQ > 40.0" >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
+gatk --java-options "-Xmx100g" SelectVariants -R $REF_DB -V $PREFIX/matrices/raw_SNPs.vcf -O $PREFIX/matrices/filtered_SNPs.vcf --select-type-to-exclude INDEL -select-type-to-include SNP --restrict-alleles-to BIALLELIC --selectExpressions "AF > 0.01 && AF < 0.99 && QD > 2.0 && MQ > 40.0 && FS < 60.0 && SOR < 3.0 && MQRankSum > -5.0 && ReadPosRankSum > -4.0" >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
 
 #VCF to phylip, nexus, and fasta formats using python program available from: https://github.com/edgardomortiz/vcf2phylip
 
