@@ -4,7 +4,7 @@ echo "
 
 ISSRseq -- CreateBAMs
                        
-development version 0.1
+development version 0.2
 use help for usage 
     
 "
@@ -21,6 +21,7 @@ REQUIRED:
 -O <AssembleReference output prefix> 
 -T <number of parallel threads>
 -M <minimum percent identity for read mapping[0-1]>
+-I <maximum indel length to allow during mapping>
 
 
 Dependencies: samtools, picard, bbmap
@@ -30,12 +31,13 @@ Dependencies: samtools, picard, bbmap
 exit 1
 fi
 
-while getopts "O:T:M:" opt; do
+while getopts "O:T:M:I:" opt; do
 
       case $opt in 
         O) PREFIX=$OPTARG ;;
         T) THREADS=$OPTARG ;;
         M) MIN_MAPPING_ID=$OPTARG ;;
+        I) MAX_INDEL=$OPTARG ;;
        esac
 done
 
@@ -49,9 +51,9 @@ mkdir $PREFIX/bams
 
 #create reference dictionary and index
 
-samtools faidx $REF_DB
+samtools faidx $REF_DB >>$PREFIX/ISSRseq_CreateBAMs.log 2>&1
 
-java -jar /usr/local/src/picard/build/libs/picard.jar CreateSequenceDictionary R=$REF_DB O=$REF_DB.dict
+java -jar /usr/local/src/picard/build/libs/picard.jar CreateSequenceDictionary R=$REF_DB O=$REF_DB.dict >>$PREFIX/ISSRseq_CreateBAMs.log 2>&1
 
 rename 's/.fa.dict/.dict/' $REF_DB.dict
 
@@ -60,7 +62,7 @@ rename 's/.fa.dict/.dict/' $REF_DB.dict
 while read -r sample
 do
     
-    bbmap threads=$THREADS minid=$MIN_MAPPING_ID nodisk=t killbadpairs=t ref=$REF_DB in=$PREFIX/trimmed_reads/${sample}_trimmed_R1.fastq in2=$PREFIX/trimmed_reads/${sample}_trimmed_R2.fastq out=$PREFIX/bams/${sample}.bam bamscript=sort.sh >>$PREFIX/ISSRseq_CreateBAMs.log 2>&1
+    bbmap threads=$THREADS minid=$MIN_MAPPING_ID nodisk=t maxindel=$MAX_INDEL strictmaxindel=t killbadpairs=t ref=$REF_DB in=$PREFIX/trimmed_reads/${sample}_trimmed_R1.fastq in2=$PREFIX/trimmed_reads/${sample}_trimmed_R2.fastq out=$PREFIX/bams/${sample}.bam bamscript=sort.sh >>$PREFIX/ISSRseq_CreateBAMs.log 2>&1
        
      sh sort.sh >>$PREFIX/ISSRseq_CreateBAMs.log 2>&1
         
