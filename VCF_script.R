@@ -8,13 +8,17 @@ library(reshape2)
 library(LEA)
 library(netview)
 library(networkD3)
+library(radiator)
+library(parallel)
+library(pcadapt)
+library(qvalue)
 
 ##
 ##Data Handling
 ##
 
 #set working directory
-setwd(dir = "C:/Users/Brandon/Google Drive/WVU/RRISSR/ISSRseq/C_bentleyi/")
+setwd(dir = "C:/Users/Brandon/Google Drive/WVU/Craig Career Proposal/data/5K_SNPS/")
 
 #import GATK filtered VCF file
 filtered_vcf <- read.vcfR("C_bentleyi_filtered_SNPs.vcf")
@@ -52,6 +56,14 @@ cols_full <- brewer.pal(n = nPop(gl_vcf_full), name = "Dark2")
 write.geno(as.matrix(gl_vcf_subset), "C_bentleyi_subset_genofile.geno")
 write.geno(as.matrix(gl_vcf_full), "C_bentleyi_full_genofile.geno")
 
+#make bayescan input
+
+#pop_data_strata <- read.table("C_bentleyi_strata.txt", sep = "\t", header = TRUE)
+
+#tidy_SNPs <- tidy_vcf("C_bentleyi_filtered_SNPs.vcf", strata = pop_data_strata, parallel.core = 1)
+
+#write_bayescan(tidy_SNPs, filename = "bayescan_input", parallel.core = 1)
+
 ##
 ##Data Analysis
 ##
@@ -83,12 +95,12 @@ vcf_pca_scores$pop <- pop(gl_vcf_full)
 
 #plot PCA results
 
-# p <- ggplot(vcf_pca_scores, aes(x=PC1, y=PC2, colour=pop)) 
+# p <- ggplot(vcf_pca_scores, aes(x=PC1, y=PC2, colour=pop))
 # p <- p + geom_point(size=2)
 # p <- p + stat_ellipse(level = 0.95, size = 1)
-# p <- p + scale_color_manual(values = cols) 
-# p <- p + geom_hline(yintercept = 0) 
-# p <- p + geom_vline(xintercept = 0) 
+# p <- p + scale_color_manual(values = cols)
+# p <- p + geom_hline(yintercept = 0)
+# p <- p + geom_vline(xintercept = 0)
 # p <- p + theme_bw()
 # p
 
@@ -157,8 +169,35 @@ netview_K_plot <- plotSelection(netview_output, options = netview_options)
 
 netview_K_plot
 
-netview_selected_K <- netview_output$k12
+netview_selected_K <- netview_output$k9
 plot(netview_selected_K, vertex.size=10, vertex.label=net_metadata$ID)
 
-######conduct AMOVA
+######conduct pcadapt analysis
 
+pcadapt_input <- read.pcadapt(input = "C_bentleyi_filtered_SNPs.vcf", type = c("vcf"))
+
+pcadapt_result <- pcadapt(pcadapt_input, K = 3, LD.clumping = list(size = 200, thr = 0.1))
+
+plot(pcadapt_result, option = "scores", pop = pop_data$V2)
+
+par(mfrow = c(1, 2))
+for (i in 1:2)
+  plot(pcadapt_result$loadings[, i], pch = 19, cex = .3, ylab = paste0("Loadings PC", i))
+
+plot(pcadapt_result, option = "screeplot")
+
+plot(pcadapt_result, option = "manhattan")
+
+plot(pcadapt_result, option = "qqplot")
+
+hist(pcadapt_result$pvalues, xlab = "p-values", main = NULL, breaks = 25, col = "orange")
+
+qvals <- qvalue(pcadapt_result$pvalues)
+
+summary(qvals)
+
+alpha <- 0.001
+
+outlier_SNPs <- which(qvals$qvalues < alpha)
+
+#plot(pcadapt_result, option = "stat.distribution")
