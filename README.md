@@ -1,2 +1,3 @@
 # ISSRseq
-Bioinformatic pipeline for ISSRseq
+A bioinformatic pipeline for the ISSRseq method
+
