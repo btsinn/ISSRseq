@@ -4,7 +4,7 @@ echo "
 
 ISSRseq -- AnalyzeBAMs
                        
-development version 0.2
+development version 0.3
 use help for usage 
     
 "
@@ -24,6 +24,8 @@ REQUIRED:
 
 
 Dependencies: GATK, vcf2phylip
+
+0.3 -- added flag for local multithreading via Spark for GATK
 
 "
 
@@ -61,7 +63,7 @@ grep "^>" $REF_DB | sed 's/^>//' > $PREFIX/reference/list.intervals
 while read -r sample
 do
 
-    gatk --java-options "-Xmx100g" HaplotypeCaller --min-base-quality-score 20 -R $REF_DB -L $PREFIX/reference/list.intervals -I $PREFIX/bams/${sample}_sorted_RG.bam -O $PREFIX/gvcfs/${sample}.g.vcf -ERC GVCF >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
+    gatk --java-options "-Xmx100g" HaplotypeCaller --spark-master local[$THREADS] --min-base-quality-score 20 -R $REF_DB -L $PREFIX/reference/list.intervals -I $PREFIX/bams/${sample}_sorted_RG.bam -O $PREFIX/gvcfs/${sample}.g.vcf -ERC GVCF >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
 
 done < $SAMPLE_LIST
 
@@ -72,15 +74,15 @@ for file in $PREFIX/gvcfs/*.g.vcf; do
     options+=(-V "${file}")    # If you want the full path, leave off ##*/
 done
 
-gatk --java-options "-Xmx100g" CombineGVCFs -L $PREFIX/reference/list.intervals -R $REF_DB "${options[@]}" -O $PREFIX/matrices/combined_gvcfs.g.vcf >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
+gatk --java-options "-Xmx100g" CombineGVCFs --spark-master local[$THREADS] -L $PREFIX/reference/list.intervals -R $REF_DB "${options[@]}" -O $PREFIX/matrices/combined_gvcfs.g.vcf >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
 
 #run GATK third step -- GenotypeGVCFs
 
-gatk --java-options "-Xmx100g" GenotypeGVCFs -L $PREFIX/reference/list.intervals -R $REF_DB -V $PREFIX/matrices/combined_gvcfs.g.vcf -ploidy 2 -O $PREFIX/matrices/raw_SNPs.vcf >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
+gatk --java-options "-Xmx100g" GenotypeGVCFs --spark-master local[$THREADS] -L $PREFIX/reference/list.intervals -R $REF_DB -V $PREFIX/matrices/combined_gvcfs.g.vcf -ploidy 2 -O $PREFIX/matrices/raw_SNPs.vcf >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
 
 #select variants from VCF that are characterized by certain attributes
 
-gatk --java-options "-Xmx100g" SelectVariants -R $REF_DB -V $PREFIX/matrices/raw_SNPs.vcf -O $PREFIX/matrices/filtered_SNPs.vcf --select-type-to-exclude INDEL -select-type-to-include SNP --restrict-alleles-to BIALLELIC --selectExpressions "AF > 0.01 && AF < 0.99 && QD > 2.0 && MQ > 40.0 && FS < 60.0 && SOR < 3.0 && MQRankSum > -5.0 && ReadPosRankSum > -4.0" >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
+gatk --java-options "-Xmx100g" SelectVariants --spark-master local[$THREADS] -R $REF_DB -V $PREFIX/matrices/raw_SNPs.vcf -O $PREFIX/matrices/filtered_SNPs.vcf --select-type-to-exclude INDEL -select-type-to-include SNP --restrict-alleles-to BIALLELIC --selectExpressions "AF > 0.01 && AF < 0.99 && QD > 2.0 && MQ > 40.0 && FS < 60.0 && SOR < 3.0 && MQRankSum > -5.0 && ReadPosRankSum > -4.0" >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
 
 #VCF to phylip, nexus, and fasta formats using python program available from: https://github.com/edgardomortiz/vcf2phylip
 
