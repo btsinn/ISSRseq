@@ -4,7 +4,7 @@ echo "
 
 ISSRseq -- AssembleReference
                        
-development version 0.2
+development version 0.3
 use help for usage 
     
 "
@@ -12,13 +12,13 @@ use help for usage
 if [[ $1 = help ]]
   then
   
-echo "This script uses processes input reads and uses ABYSS to generate a reference de novo from a designated ISSRseq sample.
+echo "This script processes input reads and uses ABYSS to generate a reference de novo from a designated ISSRseq sample, then remove loci assembled from common contaminants.
 
 Usage is as follows:
 
 REQUIRED:
 
--O <output_prefix> 
+-O <output prefix> 
 -I <read directory>
 -S <sample list> 
 -R <read prefix for sample to be used for reference assembly>
@@ -26,17 +26,25 @@ REQUIRED:
 -M <minimum post-trim read length>
 -H <N bases to hard trim at each end of reads>
 -P <fasta file of ISSR motifs used>
+-K <kmer choice for ABYSS assembly>
 -L <minimum contig length>
 
 
-Dependencies: ABYSS-PE, bbduk
+Dependencies: ABYSS-PE, bbduk, blastn
+
+version 0.3
+
+added common plant contaminant locus filter
+contaminant loci are saved to a seperate fasta (reference/contaminant_loci.fa)
+introduced entropy filtering -- loci must have entropy of 0.85 within a sliding window of 25 bp, kmer of 5
+introduced GC filtering -- loci must contain between 35% and 65% GC content
 
 "
 
 exit 1
 fi
 
-while getopts "O:I:S:R:T:M:H:P:L:" opt; do
+while getopts "O:I:S:R:T:M:H:P:L:K:" opt; do
 
       case $opt in 
         O) PREFIX=$OPTARG ;;
@@ -47,6 +55,7 @@ while getopts "O:I:S:R:T:M:H:P:L:" opt; do
         M) MIN_LENGTH=$OPTARG ;;
         H) HARD_TRIM=$OPTARG ;;
         P) ISSR_MOTIF=$OPTARG ;;
+        K) ABYSS_K=$OPTARG ;;
         L) MIN_CONTIG=$OPTARG ;;
        esac
 done      
@@ -55,6 +64,7 @@ done
 TIMESTAMP=$(date '+%Y_%m_%d_%H_%M')
 OUTPUT_DIR="$PREFIX"_"$TIMESTAMP"
 SRC=$(pwd)
+BLASTDB=/usr/local/src/ISSRseq/contam_filters/default_contam_filter_BLASTDB/default_contam_filter.fasta
 
 mkdir $OUTPUT_DIR
 mkdir $OUTPUT_DIR/trimmed_reads
@@ -86,18 +96,37 @@ echo "
 starting de novo reference assembly using $REF_SAMPLE
 "
 
-wait
+
 
 bbduk in=$OUTPUT_DIR/trimmed_reads/''$REF_SAMPLE''_trimmed_R1.fastq in2=$OUTPUT_DIR/trimmed_reads/''$REF_SAMPLE''_trimmed_R2.fastq minlength=$MIN_LENGTH k=18 ktrim=l mink=10 ref=$ISSR_MOTIF threads=$THREADS mingc=0.1 maxgc=0.9 out=$OUTPUT_DIR/reference/Ltrimmed_R1.fastq out2=$OUTPUT_DIR/reference/Ltrimmed_R2.fastq >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
 
+
+
 bbduk in=$OUTPUT_DIR/reference/Ltrimmed_R1.fastq in2=$OUTPUT_DIR/reference/Ltrimmed_R2.fastq minlength=$MIN_LENGTH k=18 ktrim=r mink=10 ref=$ISSR_MOTIF threads=$THREADS mingc=0.1 maxgc=0.9 out=$OUTPUT_DIR/reference/Ktrimmed_R1.fastq out2=$OUTPUT_DIR/reference/Ktrimmed_R2.fastq >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
 
-wait 
+ 
 
-abyss-pe -C $OUTPUT_DIR/reference name=reference k=91 np=$THREADS lib='paired' paired='Ktrimmed_R1.fastq Ktrimmed_R2.fastq' >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
+abyss-pe -C $OUTPUT_DIR/reference name=reference k=$ABYSS_K j=$THREADS lib='paired' paired='Ktrimmed_R1.fastq Ktrimmed_R2.fastq' >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
 
-wait
 
-bbduk in=$OUTPUT_DIR/reference/reference-contigs.fa k=15 minlength=$MIN_CONTIG ktrim=r mink=10 ref=$ISSR_MOTIF threads=$THREADS mingc=0.1 maxgc=0.9 out=$OUTPUT_DIR/reference/reference-contigs_R""$MIN_CONTIG""bpMIN.fa >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
 
-bbduk in=$OUTPUT_DIR/reference/reference-contigs_R""$MIN_CONTIG""bpMIN.fa k=15 minlength=$MIN_CONTIG ktrim=l mink=10 ref=$ISSR_MOTIF threads=$THREADS mingc=0.1 maxgc=0.9 trd=t out=$OUTPUT_DIR/reference/reference_assembly.fa >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
+bbduk in=$OUTPUT_DIR/reference/reference-contigs.fa k=15 minlength=$MIN_CONTIG ktrim=r mink=10 ref=$ISSR_MOTIF threads=$THREADS out=$OUTPUT_DIR/reference/reference-contigs_R""$MIN_CONTIG""bpMIN.fa >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
+ 
+bbduk in=$OUTPUT_DIR/reference/reference-contigs_R""$MIN_CONTIG""bpMIN.fa k=15 minlength=$MIN_CONTIG entropy=0.85 entropywindow=25 entropyk=5 mingc=0.35 maxgc=0.65 ktrim=l mink=10 ref=$ISSR_MOTIF threads=$THREADS trd=t out=$OUTPUT_DIR/reference/reference_assembly.fa >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
+
+grep "^>" $OUTPUT_DIR/reference/reference_assembly.fa | sed 's/>//' > $OUTPUT_DIR/reference/reference_loci_list.txt
+
+makeblastdb -in $OUTPUT_DIR/reference/reference_assembly.fa -input_type fasta -dbtype nucl -parse_seqids -out $OUTPUT_DIR/reference/reference_assemblyDB
+
+#filter contaminants from assembled reference
+
+blastn -db $BLASTDB -query $OUTPUT_DIR/reference/reference_assembly.fa -num_threads $THREADS -word_size 9 -out $OUTPUT_DIR/reference/assembly_contam_blasthits.out -evalue 0.001 -outfmt "6 qseqid" -max_target_seqs 1
+
+#need to be able to continue if no contaminants are identified ...
+sort -u -n -o $OUTPUT_DIR/reference/contam_loci_list.txt $OUTPUT_DIR/reference/assembly_contam_blasthits.out
+
+grep -v -f $OUTPUT_DIR/reference/contam_loci_list.txt $OUTPUT_DIR/reference/reference_loci_list.txt > $OUTPUT_DIR/reference/filtered_loci_list.txt
+
+blastdbcmd -db $OUTPUT_DIR/reference/reference_assemblyDB -dbtype nucl -entry_batch $OUTPUT_DIR/reference/contam_loci_list.txt -outfmt %f -out $OUTPUT_DIR/reference/contaminant_loci.fa
+
+blastdbcmd -db $OUTPUT_DIR/reference/reference_assemblyDB -dbtype nucl -entry_batch $OUTPUT_DIR/reference/filtered_loci_list.txt -outfmt %f -out $OUTPUT_DIR/reference/final_reference_assembly.fa

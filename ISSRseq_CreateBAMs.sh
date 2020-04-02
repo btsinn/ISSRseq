@@ -4,7 +4,7 @@ echo "
 
 ISSRseq -- CreateBAMs
                        
-development version 0.2
+development version 0.3
 use help for usage 
     
 "
@@ -43,7 +43,7 @@ done
 
 #########################################################################
 
-REF_DB=$PREFIX/reference/reference_assembly.fa
+REF_DB=$PREFIX/reference/final_reference_assembly.fa
 SAMPLE_LIST=$PREFIX/samples.txt
 
 mkdir $PREFIX/bams
@@ -71,6 +71,8 @@ do
     samtools index $PREFIX/bams/${sample}_sorted_RG.bam >>$PREFIX/ISSRseq_CreateBAMs.log 2>&1
 
     rm sort.sh $PREFIX/bams/${sample}.bam $PREFIX/bams/${sample}_sorted.bam $PREFIX/bams/${sample}_sorted.bam.bai
+
+echo ""${sample}" complete"
     
 done < $SAMPLE_LIST
 

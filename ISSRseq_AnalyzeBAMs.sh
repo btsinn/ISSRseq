@@ -4,7 +4,7 @@ echo "
 
 ISSRseq -- AnalyzeBAMs
                        
-development version 0.3
+development version 0.4
 use help for usage 
     
 "
@@ -20,37 +20,34 @@ REQUIRED:
 
 -O <AssembleReference output prefix -- DO NOT end with /> 
 -T <number of parallel threads>
--S <min samples for SNP inclusion in fasta,nexus,phylip matrices>
 
+Dependencies: GATK
 
-Dependencies: GATK, vcf2phylip
-
-0.3 -- added flag for local multithreading via Spark for GATK
+0.3 -- 	removed fastStructure
+	added minimum base quality for HaplotypeCaller variant scoring
+	removed from SelectVariants --restrict-alleles-to BIALLELIC
+	removed minor allele filter AF < 0.01 && AF > 0.99 from SelectVariants due to inclusion of multiallelic variants
 
 "
 
 exit 1
 fi
 
-while getopts "O:T:M:K:D:S:" opt; do
+while getopts "O:T:" opt; do
 
       case $opt in 
         O) PREFIX=$OPTARG ;;
         T) THREADS=$OPTARG ;;
-        M) MAX_MISSING_PERC=$OPTARG ;;
-        K) FAST_K=$OPTARG ;;
-        S) MIN_SAMPLES=$OPTARG ;;
        esac
 done
 
 #########################################################################
 
 mkdir $PREFIX/gvcfs
-mkdir $PREFIX/matrices
+mkdir $PREFIX/variants
 
-REF_DB=$PREFIX/reference/reference_assembly.fa
+REF_DB=$PREFIX/reference/final_reference_assembly.fa
 SAMPLE_LIST=$PREFIX/samples.txt
-FAST_STRUC_DIR=/usr/local/src/fastStructure
 
 #########################################################################
 
@@ -63,7 +60,7 @@ grep "^>" $REF_DB | sed 's/^>//' > $PREFIX/reference/list.intervals
 while read -r sample
 do
 
-    gatk --java-options "-Xmx100g" HaplotypeCaller --spark-master local[$THREADS] --min-base-quality-score 20 -R $REF_DB -L $PREFIX/reference/list.intervals -I $PREFIX/bams/${sample}_sorted_RG.bam -O $PREFIX/gvcfs/${sample}.g.vcf -ERC GVCF >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
+    gatk --java-options "-Xmx100g" HaplotypeCaller --linked-de-bruijn-graph --native-pair-hmm-threads $THREADS --native-pair-hmm-use-double-precision true -R $REF_DB -L $PREFIX/reference/list.intervals -I $PREFIX/bams/${sample}_sorted_RG.bam -O $PREFIX/gvcfs/${sample}.g.vcf -ERC GVCF >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
 
 done < $SAMPLE_LIST
 
@@ -74,16 +71,12 @@ for file in $PREFIX/gvcfs/*.g.vcf; do
     options+=(-V "${file}")    # If you want the full path, leave off ##*/
 done
 
-gatk --java-options "-Xmx100g" CombineGVCFs --spark-master local[$THREADS] -L $PREFIX/reference/list.intervals -R $REF_DB "${options[@]}" -O $PREFIX/matrices/combined_gvcfs.g.vcf >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
+gatk --java-options "-Xmx100g" CombineGVCFs -L $PREFIX/reference/list.intervals -R $REF_DB "${options[@]}" -O $PREFIX/variants/combined_gvcfs.g.vcf >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
 
 #run GATK third step -- GenotypeGVCFs
 
-gatk --java-options "-Xmx100g" GenotypeGVCFs --spark-master local[$THREADS] -L $PREFIX/reference/list.intervals -R $REF_DB -V $PREFIX/matrices/combined_gvcfs.g.vcf -ploidy 2 -O $PREFIX/matrices/raw_SNPs.vcf >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
+gatk --java-options "-Xmx100g" GenotypeGVCFs -L $PREFIX/reference/list.intervals -R $REF_DB -V $PREFIX/variants/combined_gvcfs.g.vcf -O $PREFIX/variants/raw_SNPs.vcf >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
 
-#select variants from VCF that are characterized by certain attributes
+#select variants from VCF that are characterized by GATK-recommended hard filters
 
-gatk --java-options "-Xmx100g" SelectVariants --spark-master local[$THREADS] -R $REF_DB -V $PREFIX/matrices/raw_SNPs.vcf -O $PREFIX/matrices/filtered_SNPs.vcf --select-type-to-exclude INDEL -select-type-to-include SNP --restrict-alleles-to BIALLELIC --selectExpressions "AF > 0.01 && AF < 0.99 && QD > 2.0 && MQ > 40.0 && FS < 60.0 && SOR < 3.0 && MQRankSum > -5.0 && ReadPosRankSum > -4.0" >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
-
-#VCF to phylip, nexus, and fasta formats using python program available from: https://github.com/edgardomortiz/vcf2phylip
-
-vcf2phylip -i $PREFIX/matrices/filtered_SNPs.vcf -m $MIN_SAMPLES -f -n -b >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
+gatk --java-options "-Xmx100g" SelectVariants -R $REF_DB -V $PREFIX/variants/raw_SNPs.vcf -O $PREFIX/variants/filtered_SNPs.vcf --select-type-to-include SNP --selectExpressions "QD > 2.0 && MQ > 40.0 && FS < 60.0 && SOR < 3.0 && MQRankSum > -5.0 && ReadPosRankSum > -4.0" >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
