@@ -1,4 +1,5 @@
 Mycorrhizal Fungi (one from each genus available)
+https://genome.jgi.doe.gov/portal/pages/dynamicOrganismDownload.jsf?organism=Mycorrhizal_fungi
 
 Acephala macrosclerotiorum EW76-UTF0540 v1.0: Project: 1034881, Acema1
 Amanita muscaria Koide v1.0: Project: 403202, Amamu1
@@ -50,6 +51,7 @@ Wilcoxina mikolae CBS 423.85 v1.0: Project: 1016515, Wilmi1
 Xerocomus badius 84.06 v1.0: Project: 1019549, Xerba1
 
 Plant Pathogenic Fungi
+https://genome.jgi.doe.gov/portal/Plant_pathogens/Plant_pathogens.download.html
 
  Alternaria alternata ATCC11680: Alalt1
  Ascochyta rabiei ArDII: Ascra1
@@ -129,6 +131,11 @@ Phellinus igniarius CCBS 575 v1.0: Project: 1108911, Pheign1_1
  Verticillium alfalfae VaMs.102: Veral1
  Zopfia rhizophila v1.0: Project: 1011325, Zoprh1
  Zymoseptoria ardabiliae STIR04_1.1.1: Zymar1
+
+Human Genome
+ftp://ftp.ensembl.org/pub/release-100/fasta/homo_sapiens/dna/
+
+Homo_sapiens.GRCh38.dna_rm.primary_assembly.fa.gz
 
 
 
