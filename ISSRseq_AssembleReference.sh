@@ -4,7 +4,7 @@ echo "
 
 ISSRseq -- AssembleReference
                        
-development version 0.3
+development version 0.5
 use help for usage 
     
 "
@@ -32,12 +32,15 @@ REQUIRED:
 
 Dependencies: ABYSS-PE, bbduk, blastn
 
-version 0.3
-
 added common plant contaminant locus filter
 contaminant loci are saved to a seperate fasta (reference/contaminant_loci.fa)
 introduced entropy filtering -- loci must have entropy of 0.85 within a sliding window of 25 bp, kmer of 5
 introduced GC filtering -- loci must contain between 35% and 65% GC content
+enabled tbo and tpe trimming during BBDUK read trimming
+removed secondary trimming of reference sample reads prior to assembly 
+reduced BBDUK mink setting to 8 and trimming kmer to 18
+enabled a GC content filtering of reads below 0.1 and above 0.9 
+decreased the contaminant filter evalue to 0.00001
 
 "
 
@@ -79,9 +82,9 @@ cp $SAMPLE_LIST $OUTPUT_DIR/samples.txt
 while read -r sample
 do
 
-    bbduk in=$READ_DIR/${sample}_R1.fastq in2=$READ_DIR/${sample}_R2.fastq mingc=0.1 maxgc=0.9 forcetrimleft=$HARD_TRIM forcetrimright2=$HARD_TRIM qtrim=t trimq=20 k=18 ktrim=l mink=10 ref=$ISSR_MOTIF minlength=$MIN_LENGTH threads=$THREADS out=$OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R1.fastq out2=$OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R2.fastq >>$OUTPUT_DIR/ISSRseq_read_trimming.log 2>&1
+    bbduk in=$READ_DIR/${sample}_R1.fastq in2=$READ_DIR/${sample}_R2.fastq mingc=0.1 maxgc=0.9 forcetrimleft=$HARD_TRIM forcetrimright2=$HARD_TRIM qtrim=t trimq=10 k=18 tbo=t tpe=t ktrim=l mink=8 mingc=0.1 maxgc=0.9 ref=$ISSR_MOTIF minlength=$MIN_LENGTH threads=$THREADS out=$OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R1.fastq out2=$OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R2.fastq >>$OUTPUT_DIR/ISSRseq_read_trimming.log 2>&1
     
-    bbduk in=$OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R1.fastq in2=$OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R2.fastq minlength=$MIN_LENGTH qtrim=t trimq=20 k=18 ktrim=r mink=10 ref=$ISSR_MOTIF threads=$THREADS mingc=0.1 maxgc=0.9 out=$OUTPUT_DIR/trimmed_reads/${sample}_trimmed_R1.fastq out2=$OUTPUT_DIR/trimmed_reads/${sample}_trimmed_R2.fastq >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
+    bbduk in=$OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R1.fastq in2=$OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R2.fastq minlength=$MIN_LENGTH qtrim=t trimq=10 k=18 tbo=t tpe=t  ktrim=r mink=8 mingc=0.1 maxgc=0.9 ref=$ISSR_MOTIF threads=$THREADS mingc=0.1 maxgc=0.9 out=$OUTPUT_DIR/trimmed_reads/${sample}_trimmed_R1.fastq out2=$OUTPUT_DIR/trimmed_reads/${sample}_trimmed_R2.fastq >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
     
     rm $OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R1.fastq $OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R2.fastq
     
@@ -96,23 +99,15 @@ echo "
 starting de novo reference assembly using $REF_SAMPLE
 "
 
+cp $OUTPUT_DIR/trimmed_reads/""$REF_SAMPLE""_trimmed_R1.fastq $OUTPUT_DIR/reference/trimmed_R1.fastq
 
+cp $OUTPUT_DIR/trimmed_reads/""$REF_SAMPLE""_trimmed_R2.fastq $OUTPUT_DIR/reference/trimmed_R2.fastq
 
-bbduk in=$OUTPUT_DIR/trimmed_reads/''$REF_SAMPLE''_trimmed_R1.fastq in2=$OUTPUT_DIR/trimmed_reads/''$REF_SAMPLE''_trimmed_R2.fastq minlength=$MIN_LENGTH k=18 ktrim=l mink=10 ref=$ISSR_MOTIF threads=$THREADS mingc=0.1 maxgc=0.9 out=$OUTPUT_DIR/reference/Ltrimmed_R1.fastq out2=$OUTPUT_DIR/reference/Ltrimmed_R2.fastq >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
+abyss-pe -C $OUTPUT_DIR/reference name=reference k=$ABYSS_K j=$THREADS lib='paired' paired='trimmed_R1.fastq trimmed_R2.fastq' >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
 
-
-
-bbduk in=$OUTPUT_DIR/reference/Ltrimmed_R1.fastq in2=$OUTPUT_DIR/reference/Ltrimmed_R2.fastq minlength=$MIN_LENGTH k=18 ktrim=r mink=10 ref=$ISSR_MOTIF threads=$THREADS mingc=0.1 maxgc=0.9 out=$OUTPUT_DIR/reference/Ktrimmed_R1.fastq out2=$OUTPUT_DIR/reference/Ktrimmed_R2.fastq >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
-
+bbduk in=$OUTPUT_DIR/reference/reference-contigs.fa k=18 minlength=$MIN_CONTIG entropy=0.85 entropywindow=25 entropyk=5 mingc=0.35 maxgc=0.65 ktrim=r mink=8 ref=$ISSR_MOTIF threads=$THREADS out=$OUTPUT_DIR/reference/reference-contigs_R""$MIN_CONTIG""bpMIN.fa >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
  
-
-abyss-pe -C $OUTPUT_DIR/reference name=reference k=$ABYSS_K j=$THREADS lib='paired' paired='Ktrimmed_R1.fastq Ktrimmed_R2.fastq' >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
-
-
-
-bbduk in=$OUTPUT_DIR/reference/reference-contigs.fa k=15 minlength=$MIN_CONTIG ktrim=r mink=10 ref=$ISSR_MOTIF threads=$THREADS out=$OUTPUT_DIR/reference/reference-contigs_R""$MIN_CONTIG""bpMIN.fa >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
- 
-bbduk in=$OUTPUT_DIR/reference/reference-contigs_R""$MIN_CONTIG""bpMIN.fa k=15 minlength=$MIN_CONTIG entropy=0.85 entropywindow=25 entropyk=5 mingc=0.35 maxgc=0.65 ktrim=l mink=10 ref=$ISSR_MOTIF threads=$THREADS trd=t out=$OUTPUT_DIR/reference/reference_assembly.fa >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
+bbduk in=$OUTPUT_DIR/reference/reference-contigs_R""$MIN_CONTIG""bpMIN.fa k=18 minlength=$MIN_CONTIG entropy=0.85 entropywindow=25 entropyk=5 mingc=0.35 maxgc=0.65 ktrim=l mink=8 ref=$ISSR_MOTIF threads=$THREADS trd=t out=$OUTPUT_DIR/reference/reference_assembly.fa >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
 
 grep "^>" $OUTPUT_DIR/reference/reference_assembly.fa | sed 's/>//' > $OUTPUT_DIR/reference/reference_loci_list.txt
 
@@ -120,7 +115,7 @@ makeblastdb -in $OUTPUT_DIR/reference/reference_assembly.fa -input_type fasta -d
 
 #filter contaminants from assembled reference
 
-blastn -db $BLASTDB -query $OUTPUT_DIR/reference/reference_assembly.fa -num_threads $THREADS -word_size 9 -out $OUTPUT_DIR/reference/assembly_contam_blasthits.out -evalue 0.001 -outfmt "6 qseqid" -max_target_seqs 1
+blastn -db $BLASTDB -query $OUTPUT_DIR/reference/reference_assembly.fa -num_threads $THREADS -word_size 9 -out $OUTPUT_DIR/reference/assembly_contam_blasthits.out -evalue 0.00001 -outfmt "6 qseqid" -max_target_seqs 1
 
 #need to be able to continue if no contaminants are identified ...
 sort -u -n -o $OUTPUT_DIR/reference/contam_loci_list.txt $OUTPUT_DIR/reference/assembly_contam_blasthits.out
