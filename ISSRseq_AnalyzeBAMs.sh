@@ -80,4 +80,4 @@ gatk --java-options "-Xmx100g" GenotypeGVCFs -L $PREFIX/reference/list.intervals
 
 #select variants from VCF that are characterized by GATK-recommended hard filters
 
-gatk --java-options "-Xmx100g" SelectVariants -R $REF_DB -V $PREFIX/variants/raw_SNPs.vcf -O $PREFIX/variants/filtered_SNPs.vcf --restrict-alleles-to BIALLELIC --select-type-to-include SNP --selectExpressions "AF < 0.01 && AF > 0.99 && QD > 2.0 && MQ > 40.0 && FS < 60.0 && SOR < 3.0 && MQRankSum > -5.0 && ReadPosRankSum > -4.0" >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
+gatk --java-options "-Xmx100g" SelectVariants -R $REF_DB -V $PREFIX/variants/raw_SNPs.vcf -O $PREFIX/variants/filtered_SNPs.vcf --restrict-alleles-to BIALLELIC --select-type-to-include SNP --select-type-to-include INDEL --selectExpressions "AF > 0.01 && AF < 0.99 && QD > 2.0 && MQ > 40.0 && FS < 60.0 && SOR < 3.0 && MQRankSum > -5.0 && ReadPosRankSum > -4.0" >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
