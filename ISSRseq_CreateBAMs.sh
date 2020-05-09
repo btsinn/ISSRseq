@@ -4,7 +4,7 @@ echo "
 
 ISSRseq -- CreateBAMs
                        
-development version 0.3
+development version 0.6
 use help for usage 
     
 "
@@ -20,24 +20,25 @@ REQUIRED:
 
 -O <AssembleReference output prefix> 
 -T <number of parallel threads>
--M <minimum percent identity for read mapping[0-1]>
--I <maximum indel length to allow during mapping>
 
 
 Dependencies: samtools, picard, bbmap
+
+removed user-specified indel length and minimum percent ID during mapping
+added MarkDuplicates (Picard) to flag PCR and optical duplicates in BAM files (DM file suffix = duplicates marked)
+Reduced redundant reference index building by BBMAP for each sample
+added BuildIndexFile (Picard) to re-index duplicate-flagged BAMs
 
 "
 
 exit 1
 fi
 
-while getopts "O:T:M:I:" opt; do
+while getopts "O:T:" opt; do
 
       case $opt in 
         O) PREFIX=$OPTARG ;;
         T) THREADS=$OPTARG ;;
-        M) MIN_MAPPING_ID=$OPTARG ;;
-        I) MAX_INDEL=$OPTARG ;;
        esac
 done
 
@@ -62,7 +63,7 @@ rename 's/.fa.dict/.dict/' $REF_DB.dict
 while read -r sample
 do
     
-    bbmap threads=$THREADS minid=$MIN_MAPPING_ID nodisk=t maxindel=$MAX_INDEL strictmaxindel=t killbadpairs=t ref=$REF_DB in=$PREFIX/trimmed_reads/${sample}_trimmed_R1.fastq in2=$PREFIX/trimmed_reads/${sample}_trimmed_R2.fastq out=$PREFIX/bams/${sample}.bam bamscript=sort.sh >>$PREFIX/ISSRseq_CreateBAMs.log 2>&1
+    bbmap threads=$THREADS nodisk=f killbadpairs=t ref=$REF_DB in=$PREFIX/trimmed_reads/${sample}_trimmed_R1.fastq in2=$PREFIX/trimmed_reads/${sample}_trimmed_R2.fastq out=$PREFIX/bams/${sample}.bam bamscript=sort.sh >>$PREFIX/ISSRseq_CreateBAMs.log 2>&1
        
      sh sort.sh >>$PREFIX/ISSRseq_CreateBAMs.log 2>&1
         
@@ -70,7 +71,11 @@ do
     
     samtools index $PREFIX/bams/${sample}_sorted_RG.bam >>$PREFIX/ISSRseq_CreateBAMs.log 2>&1
 
-    rm sort.sh $PREFIX/bams/${sample}.bam $PREFIX/bams/${sample}_sorted.bam $PREFIX/bams/${sample}_sorted.bam.bai
+    java -XX:ParallelGCThreads=$THREADS -jar /usr/local/src/picard/build/libs/picard.jar MarkDuplicates I=$PREFIX/bams/${sample}_sorted_RG.bam O=$PREFIX/bams/${sample}_sorted_RG_DM.bam M=$PREFIX/bams/${sample}_dups_metrics.txt ASSUME_SORT_ORDER=coordinate >>$PREFIX/ISSRseq_CreateBAMs.log 2>&1
+    
+    java -XX:ParallelGCThreads=$THREADS -jar /usr/local/src/picard/build/libs/picard.jar BuildBamIndex I=$PREFIX/bams/${sample}_sorted_RG_DM.bam
+    
+    rm sort.sh $PREFIX/bams/${sample}.bam $PREFIX/bams/${sample}_sorted.bam $PREFIX/bams/${sample}_sorted.bam.bai $PREFIX/bams/${sample}_sorted_RG.bam $PREFIX/bams/${sample}_sorted_RG.bam.bai
 
 echo ""${sample}" complete"
     
