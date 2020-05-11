@@ -28,6 +28,7 @@ REQUIRED:
 -P <fasta file of ISSR motifs used>
 -K <kmer choice for ABYSS assembly>
 -L <minimum contig length>
+-N <negative reference in fasta format to filter reads against, ex. sequenced plastome or specific contaminant>
 
 
 Dependencies: ABYSS-PE, bbduk, blastn
@@ -41,13 +42,14 @@ removed secondary trimming of reference sample reads prior to assembly
 reduced BBDUK mink setting to 8 and trimming kmer to 18
 enabled a GC content filtering of reads below 0.1 and above 0.9 
 decreased the contaminant filter evalue to 0.00001
+added the N flag to negative filter each read pool against a reference sequence
 
 "
 
 exit 1
 fi
 
-while getopts "O:I:S:R:T:M:H:P:L:K:" opt; do
+while getopts "O:I:S:R:T:M:H:P:L:K:N:" opt; do
 
       case $opt in 
         O) PREFIX=$OPTARG ;;
@@ -60,6 +62,7 @@ while getopts "O:I:S:R:T:M:H:P:L:K:" opt; do
         P) ISSR_MOTIF=$OPTARG ;;
         K) ABYSS_K=$OPTARG ;;
         L) MIN_CONTIG=$OPTARG ;;
+        N) NEG_REF=$OPTARG ;;
        esac
 done      
 
@@ -84,9 +87,11 @@ do
 
     bbduk in=$READ_DIR/${sample}_R1.fastq in2=$READ_DIR/${sample}_R2.fastq mingc=0.1 maxgc=0.9 forcetrimleft=$HARD_TRIM forcetrimright2=$HARD_TRIM qtrim=t trimq=10 k=18 tbo=t tpe=t ktrim=l mink=8 mingc=0.1 maxgc=0.9 ref=$ISSR_MOTIF minlength=$MIN_LENGTH threads=$THREADS out=$OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R1.fastq out2=$OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R2.fastq >>$OUTPUT_DIR/ISSRseq_read_trimming.log 2>&1
     
-    bbduk in=$OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R1.fastq in2=$OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R2.fastq minlength=$MIN_LENGTH qtrim=t trimq=10 k=18 tbo=t tpe=t  ktrim=r mink=8 mingc=0.1 maxgc=0.9 ref=$ISSR_MOTIF threads=$THREADS mingc=0.1 maxgc=0.9 out=$OUTPUT_DIR/trimmed_reads/${sample}_trimmed_R1.fastq out2=$OUTPUT_DIR/trimmed_reads/${sample}_trimmed_R2.fastq >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
+    bbduk in=$OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R1.fastq in2=$OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R2.fastq minlength=$MIN_LENGTH qtrim=t trimq=10 k=18 tbo=t tpe=t  ktrim=r mink=8 mingc=0.1 maxgc=0.9 ref=$ISSR_MOTIF threads=$THREADS mingc=0.1 maxgc=0.9 out=$OUTPUT_DIR/trimmed_reads/${sample}_LRtrimmed_R1.fastq out2=$OUTPUT_DIR/trimmed_reads/${sample}_LRtrimmed_R2.fastq >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
     
-    rm $OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R1.fastq $OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R2.fastq
+    bbmap threads=$THREADS nodisk=f killbadpairs=t slow=t ref=$NEG_REF in=$OUTPUT_DIR/trimmed_reads/${sample}_LRtrimmed_R1.fastq in2=$OUTPUT_DIR/trimmed_reads/${sample}_LRtrimmed_R2.fastq outu=$OUTPUT_DIR/trimmed_reads/${sample}_trimmed_R1.fastq outu2=$OUTPUT_DIR/trimmed_reads/${sample}_trimmed_R2.fastq statsfile=stderr >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
+
+    rm $OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R1.fastq $OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R2.fastq $OUTPUT_DIR/trimmed_reads/${sample}_LRtrimmed_R1.fastq $OUTPUT_DIR/trimmed_reads/${sample}_LRtrimmed_R2.fastq
     
 echo ""${sample}" reads processed"
 
