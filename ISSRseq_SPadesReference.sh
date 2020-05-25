@@ -110,7 +110,7 @@ cp $OUTPUT_DIR/trimmed_reads/""$REF_SAMPLE""_trimmed_R2.fastq $OUTPUT_DIR/refere
 
 spades.py --isolate -1 $OUTPUT_DIR/reference/trimmed_R1.fastq -2 $OUTPUT_DIR/reference/trimmed_R2.fastq -t $THREADS -k $SPADES_K -o $OUTPUT_DIR/reference >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
 
-bbduk in=$OUTPUT_DIR/reference/contigs.fa k=18 minlength=$MIN_CONTIG entropy=0.85 entropywindow=25 entropyk=5 mingc=0.35 maxgc=0.65 ktrim=r mink=8 ref=$ISSR_MOTIF threads=$THREADS out=$OUTPUT_DIR/reference/reference-contigs_R""$MIN_CONTIG""bpMIN.fa >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
+bbduk in=$OUTPUT_DIR/reference/contigs.fasta k=18 minlength=$MIN_CONTIG entropy=0.85 entropywindow=25 entropyk=5 mingc=0.35 maxgc=0.65 ktrim=r mink=8 ref=$ISSR_MOTIF threads=$THREADS out=$OUTPUT_DIR/reference/reference-contigs_R""$MIN_CONTIG""bpMIN.fa >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
  
 bbduk in=$OUTPUT_DIR/reference/reference-contigs_R""$MIN_CONTIG""bpMIN.fa k=18 minlength=$MIN_CONTIG entropy=0.85 entropywindow=25 entropyk=5 mingc=0.35 maxgc=0.65 ktrim=l mink=8 ref=$ISSR_MOTIF threads=$THREADS trd=t out=$OUTPUT_DIR/reference/reference_assembly.fa >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
 
