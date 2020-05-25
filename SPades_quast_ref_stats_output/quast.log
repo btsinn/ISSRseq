@@ -1,0 +1,64 @@
+/usr/local/bin/quast -m 0 -o SPades_quast_ref_stats_output -t 46 reference/final_reference_assembly.fa
+
+Version: 5.0.2, 0bb1dd1b
+
+System information:
+  OS: Linux-5.3.0-53-generic-x86_64-with-debian-buster-sid (linux_64)
+  Python version: 3.7.7
+  CPUs number: 48
+
+Started: 2020-05-25 10:13:57
+
+Logging to /nvme/bsinn/ISSRseq_dev/dev_test_SPAdesTest_2020_05_24_21_59/SPades_quast_ref_stats_output/quast.log
+
+CWD: /nvme/bsinn/ISSRseq_dev/dev_test_SPAdesTest_2020_05_24_21_59
+Main parameters: 
+  MODE: default, threads: 46, minimum alignment length: 65, ambiguity: one, threshold for extensive misassembly size: 1000
+
+Contigs:
+  Pre-processing...
+  reference/final_reference_assembly.fa ==> final_reference_assembly
+
+2020-05-25 10:13:57
+Running Basic statistics processor...
+  Contig files: 
+    final_reference_assembly
+  Calculating N50 and L50...
+    final_reference_assembly, N50 = 682, L50 = 1080, Total length = 2612640, GC % = 45.36, # N's per 100 kbp =  0.00
+  Drawing Nx plot...
+    saved to /nvme/bsinn/ISSRseq_dev/dev_test_SPAdesTest_2020_05_24_21_59/SPades_quast_ref_stats_output/basic_stats/Nx_plot.pdf
+  Drawing cumulative plot...
+    saved to /nvme/bsinn/ISSRseq_dev/dev_test_SPAdesTest_2020_05_24_21_59/SPades_quast_ref_stats_output/basic_stats/cumulative_plot.pdf
+  Drawing GC content plot...
+    saved to /nvme/bsinn/ISSRseq_dev/dev_test_SPAdesTest_2020_05_24_21_59/SPades_quast_ref_stats_output/basic_stats/GC_content_plot.pdf
+  Drawing final_reference_assembly GC content plot...
+    saved to /nvme/bsinn/ISSRseq_dev/dev_test_SPAdesTest_2020_05_24_21_59/SPades_quast_ref_stats_output/basic_stats/final_reference_assembly_GC_content_plot.pdf
+  Drawing Coverage histogram (bin size: 1x)...
+    saved to /nvme/bsinn/ISSRseq_dev/dev_test_SPAdesTest_2020_05_24_21_59/SPades_quast_ref_stats_output/basic_stats/coverage_histogram.pdf
+  Drawing final_reference_assembly coverage histogram (bin size: 1x)...
+    saved to /nvme/bsinn/ISSRseq_dev/dev_test_SPAdesTest_2020_05_24_21_59/SPades_quast_ref_stats_output/basic_stats/final_reference_assembly_coverage_histogram.pdf
+Done.
+
+NOTICE: Genes are not predicted by default. Use --gene-finding or --glimmer option to enable it.
+
+2020-05-25 10:13:58
+Creating large visual summaries...
+This may take a while: press Ctrl-C to skip this step..
+  1 of 2: Creating Icarus viewers...
+  2 of 2: Creating PDF with all tables and plots...
+Done
+
+2020-05-25 10:13:58
+RESULTS:
+  Text versions of total report are saved to /nvme/bsinn/ISSRseq_dev/dev_test_SPAdesTest_2020_05_24_21_59/SPades_quast_ref_stats_output/report.txt, report.tsv, and report.tex
+  Text versions of transposed total report are saved to /nvme/bsinn/ISSRseq_dev/dev_test_SPAdesTest_2020_05_24_21_59/SPades_quast_ref_stats_output/transposed_report.txt, transposed_report.tsv, and transposed_report.tex
+  HTML version (interactive tables and plots) is saved to /nvme/bsinn/ISSRseq_dev/dev_test_SPAdesTest_2020_05_24_21_59/SPades_quast_ref_stats_output/report.html
+  PDF version (tables and plots) is saved to /nvme/bsinn/ISSRseq_dev/dev_test_SPAdesTest_2020_05_24_21_59/SPades_quast_ref_stats_output/report.pdf
+  Icarus (contig browser) is saved to /nvme/bsinn/ISSRseq_dev/dev_test_SPAdesTest_2020_05_24_21_59/SPades_quast_ref_stats_output/icarus.html
+  Log is saved to /nvme/bsinn/ISSRseq_dev/dev_test_SPAdesTest_2020_05_24_21_59/SPades_quast_ref_stats_output/quast.log
+
+Finished: 2020-05-25 10:13:58
+Elapsed time: 0:00:01.271541
+NOTICEs: 1; WARNINGs: 0; non-fatal ERRORs: 0
+
+Thank you for using QUAST!
