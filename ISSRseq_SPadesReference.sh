@@ -4,10 +4,14 @@ echo "
 
 ISSRseq -- SPadesReference
                        
-development version 0.1
+development version 0.3
 use help for usage 
     
 "
+
+set -o errexit
+set -o pipefail
+set -o nounset
 
 if [[ $1 = help ]]
   then
@@ -43,6 +47,8 @@ reduced BBDUK mink setting to 8 and trimming kmer to 18
 enabled a GC content filtering of reads below 0.1 and above 0.9 
 decreased the contaminant filter evalue to 0.00001
 added the N flag to negative filter each read pool against a reference sequence
+added automatic coverage cutoff estimation and careful options for SPades
+changed downstream analysis from SPades contigs to scaffolds
 
 "
 
@@ -108,9 +114,9 @@ cp $OUTPUT_DIR/trimmed_reads/""$REF_SAMPLE""_trimmed_R1.fastq $OUTPUT_DIR/refere
 
 cp $OUTPUT_DIR/trimmed_reads/""$REF_SAMPLE""_trimmed_R2.fastq $OUTPUT_DIR/reference/trimmed_R2.fastq
 
-spades.py --isolate -1 $OUTPUT_DIR/reference/trimmed_R1.fastq -2 $OUTPUT_DIR/reference/trimmed_R2.fastq -t $THREADS -k $SPADES_K -o $OUTPUT_DIR/reference >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
+spades.py --careful --cov-cutoff auto -1 $OUTPUT_DIR/reference/trimmed_R1.fastq -2 $OUTPUT_DIR/reference/trimmed_R2.fastq -t $THREADS -k $SPADES_K -o $OUTPUT_DIR/reference >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
 
-bbduk in=$OUTPUT_DIR/reference/contigs.fasta k=18 minlength=$MIN_CONTIG entropy=0.85 entropywindow=25 entropyk=5 mingc=0.35 maxgc=0.65 ktrim=r mink=8 ref=$ISSR_MOTIF threads=$THREADS out=$OUTPUT_DIR/reference/reference-contigs_R""$MIN_CONTIG""bpMIN.fa >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
+bbduk in=$OUTPUT_DIR/reference/scaffolds.fasta k=18 minlength=$MIN_CONTIG entropy=0.85 entropywindow=25 entropyk=5 mingc=0.35 maxgc=0.65 ktrim=r mink=8 ref=$ISSR_MOTIF threads=$THREADS out=$OUTPUT_DIR/reference/reference-contigs_R""$MIN_CONTIG""bpMIN.fa >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
  
 bbduk in=$OUTPUT_DIR/reference/reference-contigs_R""$MIN_CONTIG""bpMIN.fa k=18 minlength=$MIN_CONTIG entropy=0.85 entropywindow=25 entropyk=5 mingc=0.35 maxgc=0.65 ktrim=l mink=8 ref=$ISSR_MOTIF threads=$THREADS trd=t out=$OUTPUT_DIR/reference/reference_assembly.fa >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
 

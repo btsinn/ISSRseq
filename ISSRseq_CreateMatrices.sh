@@ -4,10 +4,14 @@ echo "
 
 ISSRseq -- CreateMatrices
                        
-development version 0.1
+development version 0.2
 use help for usage 
     
 "
+
+set -o errexit
+set -o pipefail
+set -o nounset
 
 if [[ $1 = help ]]
   then

@@ -2,9 +2,9 @@
 
 echo "        
 
-ISSRseq -- AssembleReference
+ISSRseq -- AssembleAll
                        
-development version 0.6
+development version 0.2
 use help for usage 
     
 "
@@ -16,7 +16,7 @@ set -o nounset
 if [[ $1 = help ]]
   then
   
-echo "This script processes input reads and uses ABYSS to generate a reference de novo from a designated ISSRseq sample, then remove loci assembled from common contaminants.
+echo "This script processes input reads and uses ABYSS to generate a reference de novo from a pool of all trimmed input reads, then removes loci assembled from common contaminants.
 
 Usage is as follows:
 
@@ -25,7 +25,6 @@ REQUIRED:
 -O <output prefix> 
 -I <read directory>
 -S <sample list> 
--R <read prefix for sample to be used for reference assembly>
 -T <number of parallel threads>
 -M <minimum post-trim read length>
 -H <N bases to hard trim at each end of reads>
@@ -53,13 +52,12 @@ added the N flag to negative filter each read pool against a reference sequence
 exit 1
 fi
 
-while getopts "O:I:S:R:T:M:H:P:L:K:N:" opt; do
+while getopts "O:I:S:T:M:H:P:L:K:N:" opt; do
 
       case $opt in 
         O) PREFIX=$OPTARG ;;
         I) READ_DIR=$OPTARG ;;
         S) SAMPLE_LIST=$OPTARG ;;
-        R) REF_SAMPLE=$OPTARG ;;
         T) THREADS=$OPTARG ;;
         M) MIN_LENGTH=$OPTARG ;;
         H) HARD_TRIM=$OPTARG ;;
@@ -89,9 +87,9 @@ cp $SAMPLE_LIST $OUTPUT_DIR/samples.txt
 while read -r sample
 do
 
-    bbduk in=$READ_DIR/${sample}_R1.fastq in2=$READ_DIR/${sample}_R2.fastq mingc=0.1 maxgc=0.9 forcetrimleft=$HARD_TRIM forcetrimright2=$HARD_TRIM qtrim=t trimq=10 k=18 tbo=t tpe=t ktrim=l mink=8 ref=$ISSR_MOTIF minlength=$MIN_LENGTH threads=$THREADS out=$OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R1.fastq out2=$OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R2.fastq >>$OUTPUT_DIR/ISSRseq_read_trimming.log 2>&1
+    bbduk in=$READ_DIR/${sample}_R1.fastq in2=$READ_DIR/${sample}_R2.fastq mingc=0.1 maxgc=0.9 forcetrimleft=$HARD_TRIM forcetrimright2=$HARD_TRIM qtrim=t trimq=10 k=18 tbo=t tpe=t ktrim=l mink=8 mingc=0.1 maxgc=0.9 ref=$ISSR_MOTIF minlength=$MIN_LENGTH threads=$THREADS out=$OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R1.fastq out2=$OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R2.fastq >>$OUTPUT_DIR/ISSRseq_read_trimming.log 2>&1
     
-    bbduk in=$OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R1.fastq in2=$OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R2.fastq minlength=$MIN_LENGTH qtrim=t trimq=10 k=18 tbo=t tpe=t  ktrim=r mink=8 ref=$ISSR_MOTIF threads=$THREADS mingc=0.1 maxgc=0.9 out=$OUTPUT_DIR/trimmed_reads/${sample}_LRtrimmed_R1.fastq out2=$OUTPUT_DIR/trimmed_reads/${sample}_LRtrimmed_R2.fastq >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
+    bbduk in=$OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R1.fastq in2=$OUTPUT_DIR/trimmed_reads/${sample}_Ltrimmed_R2.fastq minlength=$MIN_LENGTH qtrim=t trimq=10 k=18 tbo=t tpe=t  ktrim=r mink=8 mingc=0.1 maxgc=0.9 ref=$ISSR_MOTIF threads=$THREADS mingc=0.1 maxgc=0.9 out=$OUTPUT_DIR/trimmed_reads/${sample}_LRtrimmed_R1.fastq out2=$OUTPUT_DIR/trimmed_reads/${sample}_LRtrimmed_R2.fastq >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
     
     bbmap threads=$THREADS nodisk=f killbadpairs=t slow=t ref=$NEG_REF in=$OUTPUT_DIR/trimmed_reads/${sample}_LRtrimmed_R1.fastq in2=$OUTPUT_DIR/trimmed_reads/${sample}_LRtrimmed_R2.fastq outu=$OUTPUT_DIR/trimmed_reads/${sample}_trimmed_R1.fastq outu2=$OUTPUT_DIR/trimmed_reads/${sample}_trimmed_R2.fastq statsfile=stderr >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
 
@@ -105,12 +103,12 @@ done < $SAMPLE_LIST
 
 echo "
 
-starting de novo reference assembly using $REF_SAMPLE
+Pooling all trimmed reads and starting de novo reference assembly
 "
 
-cp $OUTPUT_DIR/trimmed_reads/""$REF_SAMPLE""_trimmed_R1.fastq $OUTPUT_DIR/reference/trimmed_R1.fastq
+cat $OUTPUT_DIR/trimmed_reads/*_trimmed_R1.fastq > $OUTPUT_DIR/reference/trimmed_R1.fastq
 
-cp $OUTPUT_DIR/trimmed_reads/""$REF_SAMPLE""_trimmed_R2.fastq $OUTPUT_DIR/reference/trimmed_R2.fastq
+cat $OUTPUT_DIR/trimmed_reads/*_trimmed_R2.fastq > $OUTPUT_DIR/reference/trimmed_R2.fastq
 
 abyss-pe -C $OUTPUT_DIR/reference name=reference k=$ABYSS_K j=$THREADS lib='paired' paired='trimmed_R1.fastq trimmed_R2.fastq' >>$OUTPUT_DIR/ISSRseq_reference_assembly.log 2>&1
 

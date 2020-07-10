@@ -4,10 +4,14 @@ echo "
 
 ISSRseq -- CreateBAMs
                        
-development version 0.6
+development version 0.7
 use help for usage 
     
 "
+
+set -o errexit
+set -o pipefail
+set -o nounset
 
 if [[ $1 = help ]]
   then

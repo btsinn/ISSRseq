@@ -4,10 +4,14 @@ echo "
 
 ISSRseq -- ReferenceBased
                        
-development version 0.4
+development version 0.5
 use help for usage 
     
 "
+
+set -o errexit
+set -o pipefail
+set -o nounset
 
 if [[ $1 = help ]]
   then
