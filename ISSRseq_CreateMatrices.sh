@@ -43,12 +43,9 @@ while getopts "O:T:S:" opt; do
        esac
 done
 
-#########################################################################
-
-mkdir $PREFIX/matrices
-
-REF_DB=$OUTPUT_DIR/reference/final_reference_assembly.fa
-SAMPLE_LIST=$PREFIX/samples.txt
+if [ ! -d "$PREFIX/matrices" ]; then
+    mkdir $PREFIX/matrices
+fi
 
 #########################################################################
 
