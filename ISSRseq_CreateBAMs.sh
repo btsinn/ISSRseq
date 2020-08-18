@@ -4,7 +4,7 @@ echo "
 
 ISSRseq -- CreateBAMs
                        
-development version 0.7
+development version 0.8
 use help for usage 
     
 "
@@ -67,7 +67,7 @@ rename 's/.fa.dict/.dict/' $REF_DB.dict
 while read -r sample
 do
     
-    bbmap threads=$THREADS nodisk=f killbadpairs=t ref=$REF_DB in=$PREFIX/trimmed_reads/${sample}_trimmed_R1.fastq in2=$PREFIX/trimmed_reads/${sample}_trimmed_R2.fastq out=$PREFIX/bams/${sample}.bam bamscript=sort.sh >>$PREFIX/ISSRseq_CreateBAMs.log 2>&1
+    bbmap threads=$THREADS nodisk=t killbadpairs=t ref=$REF_DB in=$PREFIX/trimmed_reads/${sample}_trimmed_R1.fastq in2=$PREFIX/trimmed_reads/${sample}_trimmed_R2.fastq out=$PREFIX/bams/${sample}.bam bamscript=sort.sh >>$PREFIX/ISSRseq_CreateBAMs.log 2>&1
        
      sh sort.sh >>$PREFIX/ISSRseq_CreateBAMs.log 2>&1
         
@@ -77,9 +77,9 @@ do
 
     java -XX:ParallelGCThreads=$THREADS -jar /usr/local/src/picard/build/libs/picard.jar MarkDuplicates I=$PREFIX/bams/${sample}_sorted_RG.bam O=$PREFIX/bams/${sample}_sorted_RG_DM.bam M=$PREFIX/bams/${sample}_dups_metrics.txt ASSUME_SORT_ORDER=coordinate >>$PREFIX/ISSRseq_CreateBAMs.log 2>&1
     
-    java -XX:ParallelGCThreads=$THREADS -jar /usr/local/src/picard/build/libs/picard.jar BuildBamIndex I=$PREFIX/bams/${sample}_sorted_RG_DM.bam
+    java -XX:ParallelGCThreads=$THREADS -jar /usr/local/src/picard/build/libs/picard.jar BuildBamIndex I=$PREFIX/bams/${sample}_sorted_RG_DM.bam >>$PREFIX/ISSRseq_CreateBAMs.log 2>&1
     
-    rm sort.sh $PREFIX/bams/${sample}.bam $PREFIX/bams/${sample}_sorted.bam $PREFIX/bams/${sample}_sorted.bam.bai $PREFIX/bams/${sample}_sorted_RG.bam $PREFIX/bams/${sample}_sorted_RG.bam.bai
+    rm sort.sh $PREFIX/bams/${sample}.bam $PREFIX/bams/${sample}_sorted.bam $PREFIX/bams/${sample}_sorted.bam.bai $PREFIX/bams/${sample}_sorted_RG.bam $PREFIX/bams/${sample}_sorted_RG.bam.bai >>$PREFIX/ISSRseq_CreateBAMs.log 2>&1
 
 echo ""${sample}" complete"
     
