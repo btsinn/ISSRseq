@@ -4,14 +4,14 @@ echo "
 
 ISSRseq -- ReferenceBased
                        
-development version 0.6
+development version 0.8
 use help for usage 
     
 "
 
-#set -o errexit
+set -o errexit
 set -o pipefail
-#set -o nounset
+set -o nounset
 
 if [[ $1 = help ]]
   then
@@ -28,6 +28,7 @@ REQUIRED:
 -R <path to reference assembly fasta file>
 -T <number of parallel threads>
 -M <minimum post-trim read length>
+-P <fasta of ISSR primers used>
 -H <N bases to hard trim at each end of reads>
 
 
@@ -38,7 +39,7 @@ Dependencies: bbmap, bbduk
 exit 1
 fi
 
-while getopts "O:I:S:T:M:H:P:R:" opt; do
+while getopts "O:I:S:T:M:H:P:R:X:" opt; do
 
       case $opt in 
         O) PREFIX=$OPTARG ;;
@@ -49,6 +50,7 @@ while getopts "O:I:S:T:M:H:P:R:" opt; do
         H) HARD_TRIM=$OPTARG ;;
         P) ISSR_MOTIF=$OPTARG ;;
         R) REF_GENOME=$OPTARG;;
+		X) TRIM_K=$OPTARG ;;
        esac
 done
 
@@ -70,7 +72,7 @@ cp $SAMPLE_LIST $OUTPUT_DIR/samples.txt
 while read -r sample
 do
 
-    bbduk in=$READ_DIR/${sample}_R1.fastq in2=$READ_DIR/${sample}_R2.fastq mingc=0.1 maxgc=0.9 forcetrimleft=$HARD_TRIM forcetrimright2=$HARD_TRIM qtrim=lr trimq=10 k=18 tbo=t tpe=t ktrim=r ktrim=l mink=8 mingc=0.1 maxgc=0.9 ref=$ISSR_MOTIF minlength=$MIN_LENGTH threads=$THREADS out=$OUTPUT_DIR/trimmed_reads/${sample}_trimmed_R1.fastq out2=$OUTPUT_DIR/trimmed_reads/${sample}_trimmed_R2.fastq >>$OUTPUT_DIR/ISSRseq_read_trimming.log 2>&1
+    bbduk in=$READ_DIR/${sample}_R1.fastq in2=$READ_DIR/${sample}_R2.fastq mingc=0.1 maxgc=0.9 forcetrimleft=$HARD_TRIM forcetrimright2=$HARD_TRIM qtrim=rl trimq=10 k=$TRIM_K tbo=t tpe=t ktrim=r ktrim=l mink=8 ref=$ISSR_MOTIF minlength=$MIN_LENGTH threads=$THREADS out=$OUTPUT_DIR/trimmed_reads/${sample}_trimmed_R1.fastq out2=$OUTPUT_DIR/trimmed_reads/${sample}_trimmed_R2.fastq >>$OUTPUT_DIR/ISSRseq_read_trimming.log 2>&1
    
 echo ""${sample}" reads processed"
 
