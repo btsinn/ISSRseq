@@ -51,7 +51,7 @@ while getopts "O:I:S:T:M:H:P:R:X:" opt; do
         H) HARD_TRIM=$OPTARG ;;
         P) ISSR_MOTIF=$OPTARG ;;
         R) REF_GENOME=$OPTARG;;
-		X) TRIM_K=$OPTARG ;;
+        X) TRIM_K=$OPTARG ;;
        esac
 done
 
