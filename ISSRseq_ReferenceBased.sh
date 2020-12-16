@@ -30,6 +30,7 @@ REQUIRED:
 -M <minimum post-trim read length>
 -P <fasta of ISSR primers used>
 -H <N bases to hard trim at each end of reads>
+-X <bbduk trimming kmer, equal to or longer than shortest primer used>
 
 
 Dependencies: bbmap, bbduk
