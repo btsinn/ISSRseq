@@ -1,0 +1,179 @@
+INFO	2020-10-06 13:28:06	CreateSequenceDictionary	
+
+********** NOTE: Picard's command line syntax is changing.
+**********
+********** For more information, please see:
+********** https://github.com/broadinstitute/picard/wiki/Command-Line-Syntax-Transition-For-Users-(Pre-Transition)
+**********
+********** The command line looks like this in the new syntax:
+**********
+**********    CreateSequenceDictionary -R WV94_manuscript_run_2020_10_06_13_27/reference/final_reference_assembly.fa -O WV94_manuscript_run_2020_10_06_13_27/reference/final_reference_assembly.fa.dict
+**********
+
+
+13:28:06.536 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/usr/local/src/picard/build/libs/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Tue Oct 06 13:28:06 EDT 2020] CreateSequenceDictionary OUTPUT=WV94_manuscript_run_2020_10_06_13_27/reference/final_reference_assembly.fa.dict REFERENCE=WV94_manuscript_run_2020_10_06_13_27/reference/final_reference_assembly.fa    TRUNCATE_NAMES_AT_WHITESPACE=true NUM_SEQUENCES=2147483647 VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_INDEX=false CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Tue Oct 06 13:28:06 EDT 2020] Executing as bsinn@myco on Linux 4.4.0-187-generic amd64; OpenJDK 64-Bit Server VM 1.8.0_265-8u265-b01-0ubuntu2~16.04-b01; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.20.1-SNAPSHOT
+[Tue Oct 06 13:28:08 EDT 2020] picard.sam.CreateSequenceDictionary done. Elapsed time: 0.03 minutes.
+Runtime.totalMemory()=2058354688
+java -ea -Xmx225705m -cp /usr/local/src/bbmap/current/ align2.BBMap build=1 overwrite=true fastareadlen=500 threads=28 nodisk=t killbadpairs=t ref=WV94_manuscript_run_2020_10_06_13_27/reference/final_reference_assembly.fa in=WV94_manuscript_run_2020_10_06_13_27/trimmed_reads/WV94_final_trimmed_R1.fastq in2=WV94_manuscript_run_2020_10_06_13_27/trimmed_reads/WV94_final_trimmed_R2.fastq out=WV94_manuscript_run_2020_10_06_13_27/bams/WV94_final.bam bamscript=sort.sh
+Executing align2.BBMap [build=1, overwrite=true, fastareadlen=500, threads=28, nodisk=t, killbadpairs=t, ref=WV94_manuscript_run_2020_10_06_13_27/reference/final_reference_assembly.fa, in=WV94_manuscript_run_2020_10_06_13_27/trimmed_reads/WV94_final_trimmed_R1.fastq, in2=WV94_manuscript_run_2020_10_06_13_27/trimmed_reads/WV94_final_trimmed_R2.fastq, out=WV94_manuscript_run_2020_10_06_13_27/bams/WV94_final.bam, bamscript=sort.sh]
+Version 38.51
+
+Set threads to 28
+Retaining first best site only for ambiguous mappings.
+Found samtools 1.7-13-g8dee2a2
+Executing dna.FastaToChromArrays2 [WV94_manuscript_run_2020_10_06_13_27/reference/final_reference_assembly.fa, 1, writeinthread=false, genscaffoldinfo=true, retain, waitforwriting=false, gz=true, maxlen=536670912, writechroms=false, minscaf=1, midpad=300, startpad=8000, stoppad=8000, nodisk=true]
+
+Set genScaffoldInfo=true
+Set genome to 1
+
+Loaded Reference:	0.004 seconds.
+Loading index for chunk 1-1, build 1
+Indexing threads started for block 0-1
+Indexing threads finished for block 0-1
+Generated Index:	39.400 seconds.
+Analyzed Index:   	3.396 seconds.
+Started output stream:	0.017 seconds.
+Cleared Memory:    	0.786 seconds.
+Processing reads in paired-ended mode.
+Started read stream.
+Started 28 mapping threads.
+Detecting finished threads: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27
+
+   ------------------   Results   ------------------   
+
+Genome:                	1
+Key Length:            	13
+Max Indel:             	16000
+Minimum Score Ratio:  	0.56
+Mapping Mode:         	normal
+Reads Used:           	781984	(137120468 bases)
+
+Mapping:          	104.377 seconds.
+Reads/sec:       	7491.90
+kBases/sec:      	1313.70
+
+
+Pairing data:   	pct pairs	num pairs 	pct bases	   num bases
+
+mated pairs:     	 54.0968% 	   211514 	 61.2942% 	    84046954
+bad pairs:       	  0.0125% 	       49 	  0.0153% 	       21024
+insert size avg: 	  303.58
+
+
+Read 1 data:      	pct reads	num reads 	pct bases	   num bases
+
+mapped:          	 56.4730% 	   220805 	 65.6482% 	    43861202
+unambiguous:     	 54.4078% 	   212730 	 63.3413% 	    42319898
+ambiguous:       	  2.0653% 	     8075 	  2.3069% 	     1541304
+low-Q discards:  	  0.0000% 	        0 	  0.0000% 	           0
+
+perfect best site:	 20.0741% 	    78488 	 22.0719% 	    14746778
+semiperfect site:	 20.0802% 	    78512 	 22.0785% 	    14751163
+rescued:         	  1.7044% 	     6664
+
+Match Rate:      	      NA 	       NA 	 87.7609% 	    43110272
+Error Rate:      	 63.9348% 	   142317 	 12.2389% 	     6012057
+Sub Rate:        	 59.5062% 	   132459 	  1.1936% 	      586347
+Del Rate:        	  8.3685% 	    18628 	 10.7104% 	     5261217
+Ins Rate:        	 14.1970% 	    31602 	  0.3349% 	      164493
+N Rate:          	  0.0022% 	        5 	  0.0002% 	          90
+
+
+Read 2 data:      	pct reads	num reads 	pct bases	   num bases
+
+mapped:          	 55.4579% 	   216836 	 61.2733% 	    43080050
+unambiguous:     	 53.4911% 	   209146 	 59.1898% 	    41615168
+ambiguous:       	  1.9668% 	     7690 	  2.0835% 	     1464882
+low-Q discards:  	  0.0000% 	        0 	  0.0000% 	           0
+
+perfect best site:	 16.5241% 	    64608 	 16.6450% 	    11702751
+semiperfect site:	 16.5321% 	    64639 	 16.6529% 	    11708322
+rescued:         	  1.9717% 	     7709
+
+Match Rate:      	      NA 	       NA 	 88.3881% 	    42185047
+Error Rate:      	 69.3974% 	   152228 	 11.6118% 	     5541952
+Sub Rate:        	 65.8484% 	   144443 	  1.5552% 	      742244
+Del Rate:        	  8.1593% 	    17898 	  9.7367% 	     4647032
+Ins Rate:        	 14.1295% 	    30994 	  0.3199% 	      152676
+N Rate:          	  0.0027% 	        6 	  0.0002% 	          83
+
+Total time:     	153.068 seconds.
+Note: This script is designed to run with the amount of memory detected by BBMap.
+      If Samtools crashes, please ensure you are running on the same platform as BBMap,
+      or reduce Samtools' memory setting (the -m flag).
+[bam_sort_core] merging from 0 files and 3 in-memory blocks...
+INFO	2020-10-06 13:30:50	AddOrReplaceReadGroups	
+
+********** NOTE: Picard's command line syntax is changing.
+**********
+********** For more information, please see:
+********** https://github.com/broadinstitute/picard/wiki/Command-Line-Syntax-Transition-For-Users-(Pre-Transition)
+**********
+********** The command line looks like this in the new syntax:
+**********
+**********    AddOrReplaceReadGroups -I WV94_manuscript_run_2020_10_06_13_27/bams/WV94_final_sorted.bam -O WV94_manuscript_run_2020_10_06_13_27/bams/WV94_final_sorted_RG.bam -RGID 1 -RGLB WV94_final -RGPL illumina -RGPU combined_runs -RGSM WV94_final
+**********
+
+
+13:30:51.028 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/usr/local/src/picard/build/libs/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Tue Oct 06 13:30:51 EDT 2020] AddOrReplaceReadGroups INPUT=WV94_manuscript_run_2020_10_06_13_27/bams/WV94_final_sorted.bam OUTPUT=WV94_manuscript_run_2020_10_06_13_27/bams/WV94_final_sorted_RG.bam RGID=1 RGLB=WV94_final RGPL=illumina RGPU=combined_runs RGSM=WV94_final    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_INDEX=false CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Tue Oct 06 13:30:51 EDT 2020] Executing as bsinn@myco on Linux 4.4.0-187-generic amd64; OpenJDK 64-Bit Server VM 1.8.0_265-8u265-b01-0ubuntu2~16.04-b01; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.20.1-SNAPSHOT
+INFO	2020-10-06 13:30:51	AddOrReplaceReadGroups	Created read-group ID=1 PL=illumina LB=WV94_final SM=WV94_final
+
+[Tue Oct 06 13:31:04 EDT 2020] picard.sam.AddOrReplaceReadGroups done. Elapsed time: 0.23 minutes.
+Runtime.totalMemory()=2058354688
+INFO	2020-10-06 13:31:06	MarkDuplicates	
+
+********** NOTE: Picard's command line syntax is changing.
+**********
+********** For more information, please see:
+********** https://github.com/broadinstitute/picard/wiki/Command-Line-Syntax-Transition-For-Users-(Pre-Transition)
+**********
+********** The command line looks like this in the new syntax:
+**********
+**********    MarkDuplicates -I WV94_manuscript_run_2020_10_06_13_27/bams/WV94_final_sorted_RG.bam -O WV94_manuscript_run_2020_10_06_13_27/bams/WV94_final_sorted_RG_DM.bam -M WV94_manuscript_run_2020_10_06_13_27/bams/WV94_final_dups_metrics.txt -ASSUME_SORT_ORDER coordinate
+**********
+
+
+13:31:06.949 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/usr/local/src/picard/build/libs/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Tue Oct 06 13:31:06 EDT 2020] MarkDuplicates INPUT=[WV94_manuscript_run_2020_10_06_13_27/bams/WV94_final_sorted_RG.bam] OUTPUT=WV94_manuscript_run_2020_10_06_13_27/bams/WV94_final_sorted_RG_DM.bam METRICS_FILE=WV94_manuscript_run_2020_10_06_13_27/bams/WV94_final_dups_metrics.txt ASSUME_SORT_ORDER=coordinate    MAX_SEQUENCES_FOR_DISK_READ_ENDS_MAP=50000 MAX_FILE_HANDLES_FOR_READ_ENDS_MAP=8000 SORTING_COLLECTION_SIZE_RATIO=0.25 TAG_DUPLICATE_SET_MEMBERS=false REMOVE_SEQUENCING_DUPLICATES=false TAGGING_POLICY=DontTag CLEAR_DT=true DUPLEX_UMI=false ADD_PG_TAG_TO_READS=true REMOVE_DUPLICATES=false ASSUME_SORTED=false DUPLICATE_SCORING_STRATEGY=SUM_OF_BASE_QUALITIES PROGRAM_RECORD_ID=MarkDuplicates PROGRAM_GROUP_NAME=MarkDuplicates READ_NAME_REGEX=<optimized capture of last three ':' separated fields as numeric values> OPTICAL_DUPLICATE_PIXEL_DISTANCE=100 MAX_OPTICAL_DUPLICATE_SET_SIZE=300000 VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_INDEX=false CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Tue Oct 06 13:31:06 EDT 2020] Executing as bsinn@myco on Linux 4.4.0-187-generic amd64; OpenJDK 64-Bit Server VM 1.8.0_265-8u265-b01-0ubuntu2~16.04-b01; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.20.1-SNAPSHOT
+INFO	2020-10-06 13:31:07	MarkDuplicates	Start of doWork freeMemory: 2037938792; totalMemory: 2058354688; maxMemory: 28631367680
+INFO	2020-10-06 13:31:07	MarkDuplicates	Reading input file and constructing read end information.
+INFO	2020-10-06 13:31:07	MarkDuplicates	Will retain up to 103736839 data points before spilling to disk.
+WARNING	2020-10-06 13:31:07	AbstractOpticalDuplicateFinderCommandLineProgram	A field field parsed out of a read name was expected to contain an integer and did not. Read name: M00780:236:000000000-CGG4W:1:2114:9149:18611 1:N:0:GAAGGTTC+GACGAACT. Cause: String 'GAAGGTTC+GACGAACT' did not start with a parsable number.
+INFO	2020-10-06 13:31:12	MarkDuplicates	Read 452156 records. 0 pairs never matched.
+INFO	2020-10-06 13:31:13	MarkDuplicates	After buildSortedReadEndLists freeMemory: 1694320960; totalMemory: 2595749888; maxMemory: 28631367680
+INFO	2020-10-06 13:31:13	MarkDuplicates	Will retain up to 894730240 duplicate indices before spilling to disk.
+INFO	2020-10-06 13:31:17	MarkDuplicates	Traversing read pair information and detecting duplicates.
+INFO	2020-10-06 13:31:18	MarkDuplicates	Traversing fragment information and detecting duplicates.
+INFO	2020-10-06 13:31:18	MarkDuplicates	Sorting list of duplicate records.
+INFO	2020-10-06 13:31:19	MarkDuplicates	After generateDuplicateIndexes freeMemory: 2570149464; totalMemory: 9753853952; maxMemory: 28631367680
+INFO	2020-10-06 13:31:19	MarkDuplicates	Marking 64314 records as duplicates.
+INFO	2020-10-06 13:31:19	MarkDuplicates	Found 0 optical duplicate clusters.
+INFO	2020-10-06 13:31:19	MarkDuplicates	Reads are assumed to be ordered by: coordinate
+INFO	2020-10-06 13:31:33	MarkDuplicates	Before output close freeMemory: 10781607320; totalMemory: 10828644352; maxMemory: 28631367680
+INFO	2020-10-06 13:31:33	MarkDuplicates	After output close freeMemory: 10781607320; totalMemory: 10828644352; maxMemory: 28631367680
+[Tue Oct 06 13:31:33 EDT 2020] picard.sam.markduplicates.MarkDuplicates done. Elapsed time: 0.44 minutes.
+Runtime.totalMemory()=10828644352
+INFO	2020-10-06 13:31:34	BuildBamIndex	
+
+********** NOTE: Picard's command line syntax is changing.
+**********
+********** For more information, please see:
+********** https://github.com/broadinstitute/picard/wiki/Command-Line-Syntax-Transition-For-Users-(Pre-Transition)
+**********
+********** The command line looks like this in the new syntax:
+**********
+**********    BuildBamIndex -I WV94_manuscript_run_2020_10_06_13_27/bams/WV94_final_sorted_RG_DM.bam
+**********
+
+
+13:31:34.476 INFO  NativeLibraryLoader - Loading libgkl_compression.so from jar:file:/usr/local/src/picard/build/libs/picard.jar!/com/intel/gkl/native/libgkl_compression.so
+[Tue Oct 06 13:31:34 EDT 2020] BuildBamIndex INPUT=WV94_manuscript_run_2020_10_06_13_27/bams/WV94_final_sorted_RG_DM.bam    VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_INDEX=false CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
+[Tue Oct 06 13:31:34 EDT 2020] Executing as bsinn@myco on Linux 4.4.0-187-generic amd64; OpenJDK 64-Bit Server VM 1.8.0_265-8u265-b01-0ubuntu2~16.04-b01; Deflater: Intel; Inflater: Intel; Provider GCS is not available; Picard version: 2.20.1-SNAPSHOT
+INFO	2020-10-06 13:31:37	BuildBamIndex	Successfully wrote bam index file /data/bsinn/RRISSR/WV94/WV94_manuscript_run_2020_10_06_13_27/bams/WV94_final_sorted_RG_DM.bai
+[Tue Oct 06 13:31:37 EDT 2020] picard.sam.BuildBamIndex done. Elapsed time: 0.05 minutes.
+Runtime.totalMemory()=2058354688
