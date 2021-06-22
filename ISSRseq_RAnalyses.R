@@ -75,7 +75,18 @@ basicstat$overall
 #Calculate pairwise Fst with method options: "Dch","Da","Ds","Fst","Dm","Dr","Cp", "WC84, "Nei87", or "X2"
 genet.dist(my_genind, method = "WC84")
 
-#Discriminant Analysis of Principle Components with the ADEgenet package
+#Principle component analysis (PCA) with adegenet package
+aPCA <- glPca(my_genlight)
+
+#Percent variance explained by PC axes
+eig.perc <- 100*aPCA$eig/sum(aPCA$eig)
+
+#Plot PCA results
+colors <- wes_palette(n = 4, name = "Moonrise2")
+colors <- colors[as.numeric(my_genlight@pop)]
+scatter3D(aPCApoints$PC1, aPCApoints$PC2, aPCApoints$PC3, theta = 290, phi = 40, bty = "g",pch = 20, cex = 2, ticktype = "detailed", colvar = NULL, col = colors)
+
+#Discriminant Analysis of Principle Components with the adegenet package
 #Determine an appropriate number of axes and clusters with the find.clusters() command.
 grp <- find.clusters(my_snpclone, max.n.clust = 40)
 
@@ -98,41 +109,3 @@ DPACmatrix <- arrange(DPACmatrix, pop)
 #eps(file="species_PCAdapt_p-values.eps", width = 10, height = 8)
 hist(pcadapt_result$pvalues, xlab = "p-values", main = NULL, breaks = 50, col = "orange")
 #dev.off()
-
-#Outlier detection analysis with the PCAdapt package
-#Data is analyzed in this package directly from the vcf files
-pcadapt_input <- read.pcadapt(input = "SNP-Matrix.vcf.vcf", type = c("vcf"))
-
-#Determine number of dimensions (K = 4)
-x <- pcadapt(input = pcadapt_input, K = 20)
-plot(x, option = "screeplot")
-
-#Run PCAdapt analysis
-pcadapt_result <- pcadapt(pcadapt_input, K = 4, LD.clumping = list(size = 200, thr = 0.1))
-
-#Create Manhattan plot of outlier SNPs based on Region populations
-
-pdf(file="species_Manhattan.pdf", width = 10, height = 8)
-plot(pcadapt_result, option = "manhattan")
-dev.off()
-
-#Detect outlier loci analysis using q-values
-BiocManager::install("qvalue")
-library(qvalue)
-qval <- qvalue(pcadapt_result$pvalues)$qvalues
-alpha <- 0.05
-outliers <- which(qval < alpha)
-
-#Create dataset of outliers for output
-library(dplyr)
-SNPoutliers <- as.data.frame(outliers)
-SNP_pvalues <- as.data.frame(pcadapt_result$pvalues)
-SNP_pvalues <- as.data.frame(SNP_pvalues[!is.na(SNP_pvalues$`pcadapt_result$pvalues`), ])
-SNP_pvalues <- SNP_pvalues %>% rename(pvalues = "SNP_pvalues[!is.na(SNP_pvalues$`pcadapt_result$pvalues`), ]")
-
-SNPs <- as.data.frame(pcadapt_result$pass)
-SNP_pvalues$outliers <- SNPs$`pcadapt_result$pass`
-
-#Save final dataset of outlier Loci
-FinalOutliers <- merge(SNP_pvalues, SNPoutliers, by = "outliers")
-write.csv(file="SNPoutlierscheck.csv", FinalOutliers, row.names=TRUE)
