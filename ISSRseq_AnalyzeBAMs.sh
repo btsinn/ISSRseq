@@ -16,7 +16,7 @@ set -o nounset
 if [[ $1 = help ]]
   then
   
-echo "This script takes the output of CreateBAMs and calls and analyzes SNP variants.
+echo "This script takes the output of CreateBAMs and calls and analyzes variants.
 
 Usage is as follows:
 
@@ -80,8 +80,10 @@ gatk --java-options "-Xmx100g" CombineGVCFs -L $PREFIX/reference/list.intervals 
 
 #run GATK third step -- GenotypeGVCFs
 
-gatk --java-options "-Xmx100g" GenotypeGVCFs -L $PREFIX/reference/list.intervals -R $REF_DB -V $PREFIX/variants/combined_gvcfs.g.vcf -O $PREFIX/variants/raw_SNPs.vcf >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
+gatk --java-options "-Xmx100g" GenotypeGVCFs -L $PREFIX/reference/list.intervals -R $REF_DB -V $PREFIX/variants/combined_gvcfs.g.vcf -O $PREFIX/variants/raw_variants.vcf >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
 
 #select variants from VCF that are characterized by GATK-recommended hard filters
+#users can modify the number of "--select-type-to-include" flags included below 
+#for example, to keep just SNPs, remove "--select-type-to-include INDEL"
 
-gatk --java-options "-Xmx100g" SelectVariants -R $REF_DB -V $PREFIX/variants/raw_SNPs.vcf -O $PREFIX/variants/filtered_SNPs.vcf --restrict-alleles-to BIALLELIC --select-type-to-include SNP --select-type-to-include INDEL --selectExpressions "AF > 0.01 && AF < 0.99 && QD > 2.0 && MQ > 40.0 && FS < 60.0 && SOR < 3.0 && ReadPosRankSum > -8.0 && MQRankSum > -12.5 && QUAL > 30.0" >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
+gatk --java-options "-Xmx100g" SelectVariants -R $REF_DB -V $PREFIX/variants/raw_variants.vcf -O $PREFIX/variants/filtered_variants.vcf --restrict-alleles-to BIALLELIC --select-type-to-include SNP --select-type-to-include INDEL --selectExpressions "AF > 0.01 && AF < 0.99 && QD > 2.0 && MQ > 40.0 && FS < 60.0 && SOR < 3.0 && ReadPosRankSum > -8.0 && MQRankSum > -12.5 && QUAL > 30.0" >>$PREFIX/ISSRseq_AnalyzeBAMs.log 2>&1
