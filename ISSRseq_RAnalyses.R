@@ -23,16 +23,16 @@ library(wesanderson)
 
 #Importing and formatting datasets for analysis
 # 1. Import GATK filtered VCF file.
-filtered_vcf <- read.vcfR("SNP-Matrix.vcf")
+filtered_vcf <- read.vcfR("variant-Matrix.vcf")
 
-# 2. VCF can be stored as different object types including genlight (binary SNPs), genid (allelic counts), and genclone (multilocus genotype for clonal populations).
+# 2. VCF can be stored as different object types including genlight (binary variants), genid (allelic counts), and genclone (multilocus genotype for clonal populations).
 my_genlight <- vcfR2genlight(filtered_vcf)
 my_genind <- vcfR2genind(filtered_vcf)
 
 # 3. Import sample ID and population map.
 pop_data <- read.table("Sample-Populations.txt", sep = "\t", header = FALSE)
 
-# 5. Make sure to double check that the order of individuals between your population sample file and SNP matrix match.
+# 5. Make sure to double check that the order of individuals between your population sample file and variant matrix match.
 my_genlight@ind.names
 
 # 6. Set the ploidy of your individuals and assign the population groups you want to use for PCA. 
@@ -41,7 +41,7 @@ ploidy(my_genind) <- 2
 pop(my_genlight) <- pop_data$V3
 pop(my_genind) <- pop_data$V3
 
-# 7. Next assign strata to your SNP matrix for use in building hierarchies in AMOVA. 
+# 7. Next assign strata to your varient matrix for use in building hierarchies in AMOVA. 
 samplingstrata <- as.data.frame(pop_data$V4)
 strata(my_genlight) <- samplingstrata
 strata(my_genind) <- samplingstrata
