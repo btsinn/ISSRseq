@@ -41,7 +41,7 @@ while getopts "O:T:S:D:M:" opt; do
         O) PREFIX=$OPTARG ;;
         T) THREADS=$OPTARG ;;
         S) MIN_SAMPLES=$OPTARG ;;
-		    D) THINNING_DISTANCE=$OPTARG ;;
+		D) THINNING_DISTANCE=$OPTARG ;;
         M) MAX_MISSING_DATA=$OPTARG ;;
        esac
 done
