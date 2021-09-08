@@ -4,7 +4,7 @@ echo "
 
 ISSRseq -- CreateMatrices
                        
-development version 0.4
+development version 0.5
 use help for usage 
     
 "
@@ -28,7 +28,7 @@ REQUIRED:
 -D <minimum physical distance [integer] allowed between variants -- set this value to higher than the longest de novo contig to obtain thinned matrices with one variant per locus>
 -M <maximum percent missing data [floating point value between 0 & 1] allowed per variant, variants are removed for which missing data is larger than this value>
 
-Dependencies: vcf2phylip
+Dependencies: vcf2phylip (version 2.7 or greater)
 
 "
 
@@ -61,9 +61,7 @@ vcftools --vcf $PREFIX/variants/missing_filtered_variants.vcf --thin $THINNING_D
 mv $PREFIX-thinned_filtered_variants.recode.vcf $PREFIX/variants/missing_thinned_filtered_variants.vcf
 
 #VCF to phylip, nexus, and fasta formats using python program available from: https://github.com/edgardomortiz/vcf2phylip
-vcf2phylip -i $PREFIX/variants/missing_filtered_variants.vcf -m $MIN_SAMPLES -f -n -b >>$PREFIX/ISSRseq_CreateMatrices.log 2>&1
-mv $PREFIX/variants/missing_filtered_variants.min* $PREFIX/matrices
+vcf2phylip -i $PREFIX/variants/missing_filtered_variants.vcf -m $MIN_SAMPLES -f -n -b --output-folder $PREFIX/matrices >>$PREFIX/ISSRseq_CreateMatrices.log 2>&1
 
 #thinned VCF to phylip, nexus, and fasta formats using python program available from: https://github.com/edgardomortiz/vcf2phylip
-vcf2phylip -i $PREFIX/variants/missing_thinned_filtered_variants.vcf -m $MIN_SAMPLES -f -n -b >>$PREFIX/ISSRseq_CreateMatrices.log 2>&1
-mv $PREFIX/variants/missing_thinned_filtered_variants.min* $PREFIX/matrices
+vcf2phylip -i $PREFIX/variants/missing_thinned_filtered_variants.vcf -m $MIN_SAMPLES -f -n -b --output-folder $PREFIX/matrices >>$PREFIX/ISSRseq_CreateMatrices.log 2>&1
