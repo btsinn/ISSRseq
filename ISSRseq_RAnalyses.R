@@ -82,6 +82,7 @@ aPCA <- glPca(my_genlight)
 eig.perc <- 100*aPCA$eig/sum(aPCA$eig)
 
 #Plot PCA results
+aPCApoints<-as.data.frame(aPCA$scores, row.names = TRUE)
 colors <- wes_palette(n = 4, name = "Moonrise2")
 colors <- colors[as.numeric(my_genlight@pop)]
 scatter3D(aPCApoints$PC1, aPCApoints$PC2, aPCApoints$PC3, theta = 290, phi = 40, bty = "g",pch = 20, cex = 2, ticktype = "detailed", colvar = NULL, col = colors)
@@ -106,6 +107,7 @@ DPACmatrix$individual<-my_snpclone$ind.names
 DPACmatrix <- arrange(DPACmatrix, individual)
 DPACmatrix <- arrange(DPACmatrix, pop)
 
-#eps(file="species_PCAdapt_p-values.eps", width = 10, height = 8)
-hist(pcadapt_result$pvalues, xlab = "p-values", main = NULL, breaks = 50, col = "orange")
+#eps(file= "DPACbarplot.eps", width = 8, height = 5)
+barplot(t(DPACmatrix[,1:4]), col = wes_palette(n = 4, name = "Moonrise2"), border = NA, space = 0,
+        ylab = "Membership probability", name = DPACmatrix$individual, las=2, legend = TRUE, cex.axis = 0.5, cex.names = 0.3)
 #dev.off()
