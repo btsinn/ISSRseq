@@ -4,7 +4,7 @@ echo "
 
 ISSRseq -- CreateMatrices
                        
-development version 0.5
+version 1.0
 use help for usage 
     
 "
