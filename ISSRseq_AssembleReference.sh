@@ -4,7 +4,7 @@ echo "
 
 ISSRseq -- AssembleReference
                        
-development version 0.6
+version 1.0
 use help for usage 
     
 "
