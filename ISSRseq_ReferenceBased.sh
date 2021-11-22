@@ -4,7 +4,7 @@ echo "
 
 ISSRseq -- ReferenceBased
                        
-development version 0.8
+version 1.0
 use help for usage 
     
 "
